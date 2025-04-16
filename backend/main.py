@@ -1,14 +1,28 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+import os
 
-# Create an instance of the FastAPI class
+# Create FastAPI app
 app = FastAPI()
 
-# Define a route for the root path
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
+# Serve static files (React build output)
+frontend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend/build')
+app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
-# Example of another route
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/")
+def read_index():
+    # Serve the index.html from React build
+    with open(os.path.join(frontend_path, "index.html")) as f:
+        return HTMLResponse(content=f.read(), status_code=200)
+
+@app.get("/api/notes")
+def get_notes():
+    # Replace with your database logic
+    return {"notes": ["Note 1", "Note 2"]}
+
+@app.post("/api/notes")
+def create_note(note: str):
+    # Replace with database logic to save the note
+    return {"message": "Note created", "note": note}
+
